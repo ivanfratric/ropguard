@@ -1,0 +1,121 @@
+#Show message box once ROPguard has been loaded into target process and protection enabled
+ShowMessageBoxOnLoaded = true
+
+#checks if the stack pointer points to the stack of the current thread
+CheckStackPointer = true
+
+#looks for the address of of the guarded function on stack just above its return address
+CheckFunctionAddressOnStack = false
+
+#the amount of stack in bytes to preserve for the checkFunctionAddressOnStack (should be multiple of 4)
+PreserveStack = 4
+
+#checks if the return address is executable and if the return address is preceeded with a call instruction
+CheckReturnAddress = true
+
+#Checks if the target of call instruction preceeding the current return address is the same as the address of current critical function
+CheckCallTarget = false
+
+#Allows indirect calls to critical functions
+AllowIndirectCFCalls = true
+
+#Allows far calls to critical functions
+AllowFarCFCalls = true
+
+#performs a series of checks for each stack frame, see documentation
+CheckStackFrames = false
+
+#requires that the frame pointers are used throughout the code
+#if at some point EBP is not used as a frame pointer, an alert will be raised
+RequireFramePointers = false
+
+#maximum number of stack frames to traverse
+MaxStackFrames = 10
+
+#Simulate program flow after the RETN from critical function
+SimulateProgramFlow = true
+
+#How many instructions to simulate
+MaxInstructionsToSimulate = 10
+
+#if a guarded process spawns a child process, guard this process as well
+GuardChildProcesses = true
+
+#Prevents loading a library over SMB
+PreventLoadLibraryFromSMB = true
+
+#Prevents changing access rights of the stack
+PreventVirtualProtectOnStack = true
+
+#functions that will be guarded in the form of module_name:function_name:stackIncrement
+#stackIncrement indicates for how many DWORDS will the function increment stack pointer before returning
+#For functions where the callee cleans the stack, this number is usually the number of functions Parameters
+#For functions where the caller cleans the stack, this number is usually 0
+#By putting -1 as stackIncrement (or just using module_name:function_name) you will skip simulation for that instruction
+ProtectFunction = kernel32.dll:VirtualProtect:4
+ProtectFunction = kernel32.dll:VirtualProtectEx:5
+ProtectFunction = kernel32.dll:VirtualAlloc:4
+ProtectFunction = kernel32.dll:VirtualAllocEx:5
+ProtectFunction = kernel32.dll:HeapCreate:3
+ProtectFunction = ntdll.dll:RtlCreateHeap:6
+ProtectFunction = kernel32.dll:CreateProcessA:10
+ProtectFunction = kernel32.dll:CreateProcessW:10
+ProtectFunction = kernel32.dll:CreateProcessInternalA:12
+ProtectFunction = kernel32.dll:CreateProcessInternalW:12
+ProtectFunction = kernel32.dll:LoadLibraryA:1
+ProtectFunction = kernel32.dll:LoadLibraryW:1
+ProtectFunction = kernel32.dll:LoadLibraryExA:3
+ProtectFunction = kernel32.dll:LoadLibraryExW:3
+ProtectFunction = kernel32.dll:CreateRemoteThread:7
+ProtectFunction = kernel32.dll:WriteProcessMemory:5
+
+#filesystem functions
+ProtectFunction = kernel32.dll:CreateFileA:7
+ProtectFunction = kernel32.dll:CreateFileW:7
+ProtectFunction = kernel32.dll:WriteFile:5
+ProtectFunction = kernel32.dll:WriteFileEx:5
+
+#registry functions
+ProtectFunction = advapi32.dll:RegOpenKeyA:3
+ProtectFunction = advapi32.dll:RegOpenKeyW:3
+ProtectFunction = advapi32.dll:RegOpenKeyExA:5
+ProtectFunction = advapi32.dll:RegOpenKeyExW:5
+ProtectFunction = advapi32.dll:RegCreateKeyA:3
+ProtectFunction = advapi32.dll:RegCreateKeyW:3
+ProtectFunction = advapi32.dll:RegCreateKeyExA:9
+ProtectFunction = advapi32.dll:RegCreateKeyExW:9
+ProtectFunction = advapi32.dll:RegSetValueA:5
+ProtectFunction = advapi32.dll:RegSetValueW:5
+ProtectFunction = advapi32.dll:RegSetValueExA:6
+ProtectFunction = advapi32.dll:RegSetValueExW:6
+
+#the functions below could also be considered critical, 
+#however they do not exist prior to Windows 7 (CreateRemoteThreadEx) or Vista (RegSetKeyValue)
+#so they have been commented out for compatibility reasons (otherwise, a warning will be shown on older systems)
+#If you are running ROPGuard on Windows 7, uncomment the lines below
+#ProtectFunction = kernel32.dll:CreateRemoteThreadEx:8
+#ProtectFunction = advapi32.dll:RegSetKeyValueA:6
+#ProtectFunction = advapi32.dll:RegSetKeyValueW:6
+
+
+#Enable caching of executable module addresses
+#By caching executable module information, 
+#calling VirtualQuery on each critical function is avioded 
+#and the overall performance is increased
+ExecutableModuleCache = true
+
+#When one of these functions gets called, executable module cache is cleared
+ClearCache = kernel32.dll:VirtualFree
+ClearCache = kernel32.dll:VirtualFreeEx
+ClearCache = kernel32.dll:HeapDestroy
+ClearCache = ntdll.dll:RtlDestroyHeap
+ClearCache = kernel32.dll:VirtualProtect
+ClearCache = kernel32.dll:VirtualProtectEx
+
+
+#Controls the dll injection method when starting a new protected process
+#If false, process is created in suspended state after which the dll is immediately injected
+#If true, process is created in suspended state, its entry point is patched to be stuck in infinite loop
+#After the entry point is reached the dll is injected and the entry point is "unstuck" thus resuming the normal execution
+#The 'false' option is simpler but fails when starting a GUI application on some older systems
+WaitEntryPoint = true
