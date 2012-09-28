@@ -1,5 +1,8 @@
-//a function that will replace CreateProcessInternalW
-//needs to have the same prototype
+#ifndef __CREATEPROCESS__INC__
+#define __CREATEPROCESS__INC__
+
+// a function that will replace CreateProcessInternalW
+// needs to have the same prototype
 DWORD WINAPI CreateProcessInternalGuarded(
   __in         DWORD unknown1,                              // always (?) NULL
   __in_opt     LPCTSTR lpApplicationName,
@@ -18,12 +21,14 @@ DWORD WINAPI CreateProcessInternalGuarded(
 //stores the original address of CreateProcessInternalW
 void SetCreateProcessInternalOriginalPtr(unsigned long address);
 
-//DLL injection using CreateRemoteThread method
-//injects a DLL with path dllName into a process with handle proc
+// DLL injection using CreateRemoteThread method
+// injects a DLL with path dllName into a process with handle proc
 int InjectDLL(HANDLE proc, char *dllName);
 
-//creates a new process with command given in commandLine and injects dll whose path is dllName into it
-int CreateNewGuardedProcess(char *commandLine, char *dllName, bool patchEntryPoint);
+// creates a new process with command given in commandLine and injects dll whose path is dllName into it
+int CreateProcessWithDll(char *commandLine, char *dllName, bool patchEntryPoint);
 
-//injects dll whose path is given in dllName into proces with PID pid
+// injects dll whose path is given in dllName into proces with PID pid
 int GuardExistingProcess(int pid, char *dllName);
+
+#endif
